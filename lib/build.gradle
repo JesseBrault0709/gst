@@ -1,0 +1,11 @@
+plugins {
+    id 'gst.common'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.jessebrault.fsm:lib:0.2.1'
+}

@@ -1,0 +1,30 @@
+plugins {
+    id 'com.jessebrault.jbarchiva'
+    id 'java'
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+group = 'com.jessebrault.gst'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    /* TESTING */
+
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    testFixturesApi 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+}
+
+test {
+    useJUnitPlatform()
+}
