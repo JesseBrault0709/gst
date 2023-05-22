@@ -72,7 +72,7 @@ public final class FsmBasedTokenizer implements Tokenizer {
 
     private static final FsmFunction scriptletBody = new PatternMatcher(
             "scriptletBody",
-            "^.+?(?=%>)"
+            "^(?:[\\w\\W&&[^%]]|(?:%(?!>)))+"
     );
 
     private static final FsmFunction scriptletClose = new PatternMatcher(
@@ -89,11 +89,14 @@ public final class FsmBasedTokenizer implements Tokenizer {
     private int currentIndex;
     private TokenizerState currentTokenState;
     private Token currentToken;
+    private boolean done;
 
     @Override
     public void start(CharSequence input, int startIndex, int endIndex, TokenizerState initialState) {
+        this.done = false;
         this.currentInput = input;
         this.startIndex = startIndex;
+        this.currentIndex = this.startIndex;
         this.endIndex = endIndex;
         this.initFsm(initialState);
         this.pullToken();
@@ -105,13 +108,23 @@ public final class FsmBasedTokenizer implements Tokenizer {
     }
 
     @Override
-    public TokenizerState getCurrentState() {
+    public TokenizerState getCurrentTokenState() {
         return this.currentTokenState;
     }
 
     @Override
+    public int getCurrentStartIndex() {
+        return this.startIndex;
+    }
+
+    @Override
+    public int getCurrentEndIndex() {
+        return this.endIndex;
+    }
+
+    @Override
     public Token getCurrentToken() {
-        return this.currentToken;
+        return this.done ? null : this.currentToken;
     }
 
     @Override
@@ -154,6 +167,7 @@ public final class FsmBasedTokenizer implements Tokenizer {
                     sc.on(scriptletClose).shiftTo(TEXT).exec(length ->
                             this.createCurrentToken(TokenType.SCRIPTLET_CLOSE, length)
                     );
+                    sc.onNoMatch().exec(this::done);
                 })
 
                 .build();
@@ -164,7 +178,7 @@ public final class FsmBasedTokenizer implements Tokenizer {
     }
 
     private void done(CharSequence input) {
-        this.currentToken = null;
+        this.done = true;
     }
 
     private void pullToken() {

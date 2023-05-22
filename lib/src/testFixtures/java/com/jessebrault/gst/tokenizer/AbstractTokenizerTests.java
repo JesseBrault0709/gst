@@ -110,6 +110,14 @@ public abstract class AbstractTokenizerTests {
     }
 
     @Test
+    public void unclosedBlockScriptletWithSpace() {
+        assertTokens("<% ", tb -> {
+            tb.token(TokenType.BLOCK_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.SCRIPTLET_BODY, 2, 3);
+        });
+    }
+
+    @Test
     public void simpleBlockScriptlet() {
         assertTokens("<% out << 'Hello, World!' %>", tb -> {
             tb.token(TokenType.BLOCK_SCRIPTLET_OPEN, 0, 2);
@@ -124,6 +132,20 @@ public abstract class AbstractTokenizerTests {
             tb.token(TokenType.EXPRESSION_SCRIPTLET_OPEN, 0, 3);
             tb.token(TokenType.SCRIPTLET_BODY, 3, 20);
             tb.token(TokenType.SCRIPTLET_CLOSE, 20, 22);
+        });
+    }
+
+    @Test
+    public void textWithNewline() {
+        assertTokens("\n", tb -> {
+            tb.token(TokenType.TEXT, 0, 1);
+        });
+    }
+
+    @Test
+    public void textWithMultipleNewlines() {
+        assertTokens("\n\n", tb -> {
+            tb.token(TokenType.TEXT, 0, 2);
         });
     }
 

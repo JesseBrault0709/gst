@@ -1,5 +1,7 @@
 package com.jessebrault.gst.tokenizer;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,9 +10,12 @@ public interface Tokenizer {
     void start(CharSequence input, int startIndex, int endIndex, TokenizerState initialState);
 
     CharSequence getCurrentInput();
-    TokenizerState getCurrentState();
+    TokenizerState getCurrentTokenState();
 
-    Token getCurrentToken();
+    int getCurrentStartIndex();
+    int getCurrentEndIndex();
+
+    @Nullable Token getCurrentToken();
 
     void advance();
 
