@@ -1,19 +1,21 @@
 package com.jessebrault.gst.tokenizer;
 
+import java.util.Objects;
+
 final class SimpleToken implements Token {
 
-    private final Type type;
+    private final TokenType type;
     private final int startIndex;
     private final int endIndex;
 
-    public SimpleToken(Type type, int startIndex, int endIndex) {
+    public SimpleToken(TokenType type, int startIndex, int endIndex) {
         this.type = type;
         this.startIndex = startIndex;
         this.endIndex = endIndex;
     }
 
     @Override
-    public Type getType() {
+    public TokenType getType() {
         return this.type;
     }
 
@@ -25,6 +27,32 @@ final class SimpleToken implements Token {
     @Override
     public int getEndIndex() {
         return this.endIndex;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.type, this.startIndex, this.endIndex);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (!(obj instanceof Token t)) {
+            return false;
+        } else {
+            return this.type == t.getType()
+                    && this.startIndex == t.getStartIndex()
+                    && this.endIndex == t.getEndIndex();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleToken(type: " + this.type
+                + ", startIndex: " + this.startIndex
+                + ", endIndex: " + this.endIndex
+                + ")";
     }
 
 }
