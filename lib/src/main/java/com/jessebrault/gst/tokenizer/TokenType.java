@@ -2,7 +2,8 @@ package com.jessebrault.gst.tokenizer;
 
 public enum TokenType {
     TEXT,
-    DOLLAR_REFERENCE,
+    DOLLAR_REFERENCE_DOLLAR,
+    DOLLAR_REFERENCE_BODY,
 
     BLOCK_SCRIPTLET_OPEN,
     EXPRESSION_SCRIPTLET_OPEN,

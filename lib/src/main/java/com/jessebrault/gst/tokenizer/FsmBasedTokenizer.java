@@ -57,9 +57,13 @@ public final class FsmBasedTokenizer implements Tokenizer {
             "text",
             "^(?:[\\w\\W&&[^\\$<]]|(?:\\$(?![{a-zA-Z_]))|(?:<(?!%)))+"
     );
-    private static final FsmFunction dollarReference = new PatternMatcher(
-            "dollarReference",
-            "^\\$[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*"
+    private static final FsmFunction dollarReferenceDollar = new PatternMatcher(
+            "dollarReferenceDollar",
+            "^\\$(?=[a-zA-Z_$])"
+    );
+    private static final FsmFunction dollarReferenceBody = new PatternMatcher(
+            "dollarReferenceBody",
+            "^[a-zA-Z_$][a-zA-Z0-9_$]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*"
     );
     private static final FsmFunction blockScriptletOpen = new PatternMatcher(
             "blockScriptletOpen",
@@ -143,12 +147,21 @@ public final class FsmBasedTokenizer implements Tokenizer {
 
                 .whileIn(TEXT, sc -> {
                     sc.on(text).exec(length -> this.createCurrentToken(TokenType.TEXT, length));
-                    sc.on(dollarReference).exec(length -> this.createCurrentToken(TokenType.DOLLAR_REFERENCE, length));
+                    sc.on(dollarReferenceDollar).shiftTo(DOLLAR_REFERENCE_BODY).exec(length ->
+                            this.createCurrentToken(TokenType.DOLLAR_REFERENCE_DOLLAR, length)
+                    );
                     sc.on(blockScriptletOpen).shiftTo(SCRIPTLET_BODY).exec(length ->
                             this.createCurrentToken(TokenType.BLOCK_SCRIPTLET_OPEN, length)
                     );
                     sc.on(expressionScriptletOpen).shiftTo(SCRIPTLET_BODY).exec(length ->
                             this.createCurrentToken(TokenType.EXPRESSION_SCRIPTLET_OPEN, length)
+                    );
+                    sc.onNoMatch().exec(this::done);
+                })
+
+                .whileIn(DOLLAR_REFERENCE_BODY, sc -> {
+                    sc.on(dollarReferenceBody).shiftTo(TEXT).exec(length ->
+                            this.createCurrentToken(TokenType.DOLLAR_REFERENCE_BODY, length)
                     );
                     sc.onNoMatch().exec(this::done);
                 })

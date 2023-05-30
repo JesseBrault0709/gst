@@ -55,22 +55,32 @@ public abstract class AbstractTokenizerTests {
     @Test
     public void dollarReference() {
         assertTokens("$a", tb -> {
-            tb.token(TokenType.DOLLAR_REFERENCE, 0, 2);
+            tb.token(TokenType.DOLLAR_REFERENCE_DOLLAR, 0, 1);
+            tb.token(TokenType.DOLLAR_REFERENCE_BODY, 1, 2);
         });
     }
 
     @Test
     public void complexDollarReference() {
         assertTokens("$a.b.c", tb -> {
-            tb.token(TokenType.DOLLAR_REFERENCE, 0, 6);
+            tb.token(TokenType.DOLLAR_REFERENCE_DOLLAR, 0, 1);
+            tb.token(TokenType.DOLLAR_REFERENCE_BODY, 1, 6);
         });
     }
 
     @Test
     public void dollarReferenceFollowedByText() {
         assertTokens("$greeting, world!", tb -> {
-            tb.token(TokenType.DOLLAR_REFERENCE, 0, 9);
+            tb.token(TokenType.DOLLAR_REFERENCE_DOLLAR, 0, 1);
+            tb.token(TokenType.DOLLAR_REFERENCE_BODY, 1, 9);
             tb.token(TokenType.TEXT, 9, 17);
+        });
+    }
+
+    @Test
+    public void dollarNotConfusedAsDollarReferenceDollar() {
+        assertTokens("$", tb -> {
+            tb.token(TokenType.TEXT, 0, 1);
         });
     }
 
