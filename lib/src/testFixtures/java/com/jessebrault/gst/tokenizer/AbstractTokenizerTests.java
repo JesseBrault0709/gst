@@ -1,6 +1,8 @@
 package com.jessebrault.gst.tokenizer;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AbstractTokenizerTests {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractTokenizerTests.class);
 
     protected static final class AssertTokensBuilder {
 
@@ -35,6 +39,8 @@ public abstract class AbstractTokenizerTests {
         testBuilder.accept(b);
         final var expectedTokens = b.getTokens();
         final var actual = this.tokenizer.tokenize(input);
+        logger.debug("expectedTokens: {}", expectedTokens);
+        logger.debug("actual: {}", actual);
         assertIterableEquals(expectedTokens, actual);
     }
 
@@ -156,6 +162,74 @@ public abstract class AbstractTokenizerTests {
     public void textWithMultipleNewlines() {
         assertTokens("\n\n", tb -> {
             tb.token(TokenType.TEXT, 0, 2);
+        });
+    }
+
+    @Test
+    public void emptyImportBlock() {
+        assertTokens("<%@%>", tb -> {
+            tb.token(TokenType.IMPORT_BLOCK_OPEN, 0, 3);
+            tb.token(TokenType.IMPORT_BLOCK_CLOSE, 3, 5);
+        });
+    }
+
+    @Test
+    public void importBlockWithSpace() {
+        assertTokens("<%@ %>", tb -> {
+            tb.token(TokenType.IMPORT_BLOCK_OPEN, 0, 3);
+            tb.token(TokenType.IMPORT_BLOCK_BODY, 3, 4);
+            tb.token(TokenType.IMPORT_BLOCK_CLOSE, 4, 6);
+        });
+    }
+
+    @Test
+    public void unclosedImportBlock() {
+        assertTokens("<%@", tb -> {
+            tb.token(TokenType.IMPORT_BLOCK_OPEN, 0, 3);
+        });
+    }
+
+    @Test
+    public void emptyDollarScriptlet() {
+        assertTokens("${}", tb -> {
+            tb.token(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_CLOSE, 2, 3);
+        });
+    }
+
+    @Test
+    public void dollarScriptletWithSpace() {
+        assertTokens("${ }", tb -> {
+            tb.token(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_BODY, 2, 3);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_CLOSE, 3, 4);
+        });
+    }
+
+    @Test
+    public void dollarScriptletWithNestedClosure() {
+        assertTokens("${ { } }", tb -> {
+            tb.token(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_BODY, 2, 7);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_CLOSE, 7, 8);
+        });
+    }
+
+    @Test
+    public void dollarScriptletWithGString() {
+        assertTokens("${ \"\" }", tb -> {
+            tb.token(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_BODY, 2, 6);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_CLOSE, 6, 7);
+        });
+    }
+
+    @Test
+    public void dollarScriptletWithGStringWithNestedClosure() {
+        assertTokens("${ \"${ test() }\" }", tb -> {
+            tb.token(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_BODY, 2, 17);
+            tb.token(TokenType.DOLLAR_SCRIPTLET_CLOSE, 17, 18);
         });
     }
 
