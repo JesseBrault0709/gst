@@ -65,6 +65,9 @@ public class StandardGstParser implements Parser {
     protected final boolean isStashed(TokenType... expectedTypes) {
         for (int i = 0; i < expectedTypes.length; i++) {
             final var expectedType = expectedTypes[i];
+            if (i >= this.stashedTypes.size()) {
+                return false;
+            }
             final var stashedType = this.stashedTypes.get(i);
             if (expectedType != stashedType) {
                 return false;
@@ -245,7 +248,7 @@ public class StandardGstParser implements Parser {
         } else {
             // had body
             this.clearStash();
-            diagnostics.addAll(this.expectLeaf(TokenType.SCRIPTLET_CLOSE));
+            diagnostics.addAll(this.expectLeaf(TokenType.DOLLAR_SCRIPTLET_CLOSE));
             this.acc.done(diagnostics);
         }
     }

@@ -3,8 +3,15 @@ package com.jessebrault.gst.parser
 import com.jessebrault.gst.ast.TreeNodeType.*
 import com.jessebrault.gst.tokenizer.*
 import org.junit.jupiter.api.Test
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import kotlin.test.assertEquals
 
 abstract class AbstractParserTests(private val parser: Parser) {
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(AbstractParserTests::class.java)
+    }
 
     open fun getTokenizer(): Tokenizer = FsmBasedTokenizer()
 
@@ -113,6 +120,17 @@ abstract class AbstractParserTests(private val parser: Parser) {
             hasChild(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2)
             hasChild(TokenType.DOLLAR_SCRIPTLET_BODY, 2, 3)
             hasChild(TokenType.DOLLAR_SCRIPTLET_CLOSE, 3, 4)
+        }
+    }
+
+    @Test
+    fun unclosedDollarScriptlet() = this.doGStringTest("\${") {
+        hasChild(DOLLAR_SCRIPTLET) {
+            hasDiagnostics {
+                logger.debug("diagnostics: {}", it)
+                assertEquals(1, it.size)
+            }
+            hasChild(TokenType.DOLLAR_SCRIPTLET_OPEN, 0, 2)
         }
     }
 
