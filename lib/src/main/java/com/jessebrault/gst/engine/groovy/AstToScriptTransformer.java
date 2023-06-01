@@ -1,7 +1,7 @@
 package com.jessebrault.gst.engine.groovy;
 
 import com.jessebrault.gst.ast.*;
-import com.jessebrault.gst.parser.SimpleAccumulator;
+import com.jessebrault.gst.parser.SimpleParserAccumulator;
 import com.jessebrault.gst.parser.StandardGstParser;
 import com.jessebrault.gst.tokenizer.FsmBasedTokenizer;
 import com.jessebrault.gst.tokenizer.TokenType;
@@ -15,7 +15,7 @@ public final class AstToScriptTransformer extends AbstractAstVisitor {
     // Testing only
     public static void main(String[] args) {
         final var tokenizer = new FsmBasedTokenizer();
-        final var acc = new SimpleAccumulator();
+        final var acc = new SimpleParserAccumulator();
         final var parser = new StandardGstParser();
         final var input = "<%= unfinished() %>";
         parser.parse(new TokenizerBasedTokenProvider(input, tokenizer), acc);

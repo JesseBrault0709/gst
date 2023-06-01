@@ -12,7 +12,7 @@ abstract class AbstractParserTests(private val parser: Parser) {
             TokenizerBasedTokenProvider(input, this.getTokenizer())
 
     open fun doGStringTest(input: CharSequence, tests: NodeTester.() -> Unit) {
-        val acc = SimpleAccumulator()
+        val acc = SimpleParserAccumulator()
         this.parser.parse(this.getTokenProvider(input), acc)
         assertGString(acc.result, tests)
     }

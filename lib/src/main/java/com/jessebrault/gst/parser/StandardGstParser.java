@@ -20,11 +20,11 @@ public class StandardGstParser implements Parser {
     private static final Logger logger = LoggerFactory.getLogger(StandardGstParser.class);
 
     protected TokenProvider tokens;
-    protected Accumulator acc;
+    protected ParserAccumulator acc;
     private List<TokenType> stashedTypes = new ArrayList<>();
 
     @Override
-    public final void parse(TokenProvider tokenProvider, Accumulator acc) {
+    public final void parse(TokenProvider tokenProvider, ParserAccumulator acc) {
         this.tokens = tokenProvider;
         this.acc = acc;
         this.stashedTypes = new ArrayList<>();

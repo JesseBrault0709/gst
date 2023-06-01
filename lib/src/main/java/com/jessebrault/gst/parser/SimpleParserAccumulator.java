@@ -9,7 +9,7 @@ import com.jessebrault.gst.util.Diagnostic;
 
 import java.util.*;
 
-public final class SimpleAccumulator implements Accumulator {
+public final class SimpleParserAccumulator implements ParserAccumulator {
 
     private final Deque<TreeNodeType> parents = new LinkedList<>();
     private final Deque<List<AstNode>> children = new LinkedList<>();

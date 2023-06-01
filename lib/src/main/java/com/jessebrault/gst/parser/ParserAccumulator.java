@@ -7,7 +7,7 @@ import com.jessebrault.gst.util.Diagnostic;
 import java.util.Collection;
 import java.util.List;
 
-public interface Accumulator {
+public interface ParserAccumulator {
 
     void start(TreeNodeType type);
 
