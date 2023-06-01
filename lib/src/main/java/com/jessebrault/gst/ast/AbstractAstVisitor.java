@@ -33,11 +33,9 @@ public abstract class AbstractAstVisitor implements AstVisitor {
         });
     }
 
-    @Override
-    public void defaultBefore(AstNode astNode) {}
+    protected void defaultBefore(AstNode astNode) {}
 
-    @Override
-    public void defaultAfter(AstNode after) {}
+    protected void defaultAfter(AstNode after) {}
 
     @Override
     public void visitGString(TreeNode node) {

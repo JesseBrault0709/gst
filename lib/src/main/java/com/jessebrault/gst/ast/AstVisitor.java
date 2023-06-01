@@ -1,9 +1,6 @@
 package com.jessebrault.gst.ast;
 
 public interface AstVisitor {
-    void defaultBefore(AstNode astNode);
-    void defaultAfter(AstNode after);
-
     void visitGString(TreeNode node);
     void visitDollarReference(TreeNode node);
     void visitBlockScriptlet(TreeNode node);
