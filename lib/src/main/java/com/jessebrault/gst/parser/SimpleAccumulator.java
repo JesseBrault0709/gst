@@ -14,7 +14,7 @@ public final class SimpleAccumulator implements Parser.Accumulator {
     private final Deque<TreeNodeType> parents = new LinkedList<>();
     private final Deque<List<AstNode>> children = new LinkedList<>();
 
-    private AstNode result;
+    private TreeNode result;
 
     private List<AstNode> getCurrentChildren() {
         final var currentChildren = this.children.peek();
@@ -47,7 +47,7 @@ public final class SimpleAccumulator implements Parser.Accumulator {
         }
     }
 
-    public AstNode getResult() {
+    public TreeNode getResult() {
         if (this.result == null) {
             throw new IllegalStateException("not done accumulating AST yet");
         }

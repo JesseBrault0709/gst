@@ -41,4 +41,20 @@ public final class LeafNode implements AstNode {
         return this.tokenEnd;
     }
 
+    @Override
+    public String toString() {
+        final var b = new StringBuilder(this.tokenType.toString())
+                .append("(").append(this.tokenStart).append(", ").append(this.tokenEnd);
+        if (!this.diagnostics.isEmpty()) {
+            b.append(", diagnostics: ");
+            final var iter = this.diagnostics.iterator();
+            while (iter.hasNext()) {
+                b.append(iter.next());
+                if (iter.hasNext()) {
+                    b.append(", ");
+                }
+            }
+        }
+        return b.append(")").toString();
+    }
 }
