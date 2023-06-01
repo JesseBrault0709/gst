@@ -16,6 +16,9 @@ repositories {
 }
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.jetbrains/annotations
+    compileOnly 'org.jetbrains:annotations:24.0.1'
+
     /**
      * Logging
      */
