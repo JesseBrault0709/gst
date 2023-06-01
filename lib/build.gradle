@@ -1,5 +1,10 @@
 plugins {
     id 'gst.common'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 repositories {
@@ -8,4 +13,9 @@ repositories {
 
 dependencies {
     implementation 'com.jessebrault.fsm:lib:0.2.1'
+
+    'org.jetbrains.kotlin:kotlin-test'.with {
+        testImplementation it
+        testFixturesImplementation it
+    }
 }

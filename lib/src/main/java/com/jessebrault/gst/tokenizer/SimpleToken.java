@@ -2,7 +2,7 @@ package com.jessebrault.gst.tokenizer;
 
 import java.util.Objects;
 
-final class SimpleToken implements Token {
+public final class SimpleToken implements Token {
 
     private final TokenType type;
     private final int startIndex;

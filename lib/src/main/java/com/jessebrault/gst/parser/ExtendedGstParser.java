@@ -1,6 +1,9 @@
 package com.jessebrault.gst.parser;
 
-public class ExtendedGStringParser extends StandardGStringParser {
+/**
+ * May be extended.
+ */
+public class ExtendedGstParser extends StandardGstParser {
 
     @Override
     protected boolean isImportBlockPermitted() {
