@@ -6,7 +6,6 @@ import com.jessebrault.fsm.function.FunctionFsmBuilderImpl;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsm;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilder;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilderImpl;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -336,21 +335,24 @@ public final class FsmBasedTokenizer implements Tokenizer {
     private FunctionFsm<CharSequence, TokenizerState, Integer> fsm;
 
     private CharSequence currentInput;
-    private int startIndex;
-    private int endIndex;
-
+    private int inputStartIndex;
+    private int inputEndIndex;
     private int currentIndex;
     private TokenizerState currentTokenState;
-    private Token currentToken;
+
+    private TokenType currentTokenType;
+    private int currentTokenStart;
+    private int currentTokenEnd;
+
     private boolean done;
 
     @Override
     public void start(CharSequence input, int startIndex, int endIndex, TokenizerState initialState) {
         this.done = false;
         this.currentInput = input;
-        this.startIndex = startIndex;
-        this.currentIndex = this.startIndex;
-        this.endIndex = endIndex;
+        this.inputStartIndex = startIndex;
+        this.currentIndex = this.inputStartIndex;
+        this.inputEndIndex = endIndex;
         this.initFsm(initialState);
         this.pullToken();
     }
@@ -366,26 +368,36 @@ public final class FsmBasedTokenizer implements Tokenizer {
     }
 
     @Override
-    public int getCurrentStartIndex() {
-        return this.startIndex;
+    public int getInputStartIndex() {
+        return this.inputStartIndex;
     }
 
     @Override
-    public int getCurrentEndIndex() {
-        return this.endIndex;
+    public int getInputEndIndex() {
+        return this.inputEndIndex;
     }
 
     @Override
-    public Token getCurrentToken() {
-        return this.done ? null : this.currentToken;
+    public TokenType getCurrentType() {
+        return this.done ? null : this.currentTokenType;
+    }
+
+    @Override
+    public int getCurrentStart() {
+        return this.currentTokenStart;
+    }
+
+    @Override
+    public int getCurrentEnd() {
+        return this.currentTokenEnd;
     }
 
     @Override
     public void advance() {
-        if (this.currentToken == null) {
-            throw new IllegalStateException("cannot advance; this.currentToken is null");
+        if (this.currentTokenType == null) {
+            throw new IllegalStateException("cannot advance; this.currentTokenType is null");
         }
-        this.currentIndex = this.currentToken.getEndIndex();
+        this.currentIndex = this.currentTokenEnd;
         this.pullToken();
     }
 
@@ -476,7 +488,9 @@ public final class FsmBasedTokenizer implements Tokenizer {
     }
 
     private void createCurrentToken(TokenType type, int length) {
-        this.currentToken = new SimpleToken(type, this.currentIndex, this.currentIndex + length);
+        this.currentTokenType = type;
+        this.currentTokenStart = this.currentIndex;
+        this.currentTokenEnd = this.currentIndex + length;
     }
 
     private void done(CharSequence input) {
@@ -487,8 +501,8 @@ public final class FsmBasedTokenizer implements Tokenizer {
         this.currentTokenState = this.fsm.getCurrentState();
         this.fsm.apply(
                 this.currentInput.subSequence(
-                        Math.max(this.currentIndex, this.startIndex),
-                        this.endIndex
+                        Math.max(this.currentIndex, this.inputStartIndex),
+                        this.inputEndIndex
                 )
         );
     }

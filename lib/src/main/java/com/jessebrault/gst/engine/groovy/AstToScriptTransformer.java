@@ -5,7 +5,7 @@ import com.jessebrault.gst.parser.SimpleParserAccumulator;
 import com.jessebrault.gst.parser.StandardGstParser;
 import com.jessebrault.gst.tokenizer.FsmBasedTokenizer;
 import com.jessebrault.gst.tokenizer.TokenType;
-import com.jessebrault.gst.tokenizer.TokenizerBasedTokenProvider;
+import com.jessebrault.gst.tokenizer.TokenizerState;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,8 @@ public final class AstToScriptTransformer extends AbstractAstVisitor {
         final var acc = new SimpleParserAccumulator();
         final var parser = new StandardGstParser();
         final var input = "<%= unfinished() %>";
-        parser.parse(new TokenizerBasedTokenProvider(input, tokenizer), acc);
+        tokenizer.start(input, 0, input.length(), TokenizerState.TEXT);
+        parser.parse(tokenizer, acc);
         final var root = acc.getResult();
 
         final var prettyPrinter = new AstPrettyPrinterVisitor();

@@ -1,6 +1,5 @@
 package com.jessebrault.gst.parser;
 
-import com.jessebrault.gst.tokenizer.Token;
 import com.jessebrault.gst.tokenizer.TokenProvider;
 import com.jessebrault.gst.tokenizer.TokenType;
 import com.jessebrault.gst.util.Diagnostic;
@@ -8,7 +7,10 @@ import com.jessebrault.gst.util.SimpleDiagnostic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static com.jessebrault.gst.ast.TreeNodeType.*;
 
@@ -19,13 +21,13 @@ public class StandardGstParser implements Parser {
 
     private static final Logger logger = LoggerFactory.getLogger(StandardGstParser.class);
 
-    protected TokenProvider tokens;
+    protected TokenProvider tokenProvider;
     protected ParserAccumulator acc;
     private List<TokenType> stashedTypes = new ArrayList<>();
 
     @Override
     public final void parse(TokenProvider tokenProvider, ParserAccumulator acc) {
-        this.tokens = tokenProvider;
+        this.tokenProvider = tokenProvider;
         this.acc = acc;
         this.stashedTypes = new ArrayList<>();
         this.gString();
@@ -82,23 +84,28 @@ public class StandardGstParser implements Parser {
 
     protected final Collection<Diagnostic> expectLeaf(boolean stash, TokenType... anyOf) {
         final Collection<Diagnostic> diagnostics = new ArrayList<>();
-        final var t = this.tokens.getCurrent();
-        if (t != null && Arrays.asList(anyOf).contains(t.getType())) {
+        final var currentType = this.tokenProvider.getCurrentType();
+        if (currentType != null && Arrays.asList(anyOf).contains(currentType)) {
             if (stash) {
-                this.stash(t.getType());
+                this.stash(currentType);
             }
-            this.acc.leaf(t.getType(), t.getStartIndex(), t.getEndIndex());
-        } else if (t != null) {
+            this.acc.leaf(currentType, this.tokenProvider.getCurrentStart(), this.tokenProvider.getCurrentEnd());
+        } else if (currentType != null) {
             final var diagnostic = new SimpleDiagnostic(
-                    getUnexpectedMessage(t.getType(), anyOf)
+                    getUnexpectedMessage(currentType, anyOf)
             );
-            this.acc.leaf(t.getType(), t.getStartIndex(), t.getEndIndex(), List.of(diagnostic));
+            this.acc.leaf(
+                    currentType,
+                    this.tokenProvider.getCurrentStart(),
+                    this.tokenProvider.getCurrentEnd(),
+                    List.of(diagnostic)
+            );
         } else {
             diagnostics.add(new SimpleDiagnostic(
                     getNullTokenMessage(anyOf)
             ));
         }
-        this.tokens.advance();
+        this.tokenProvider.advance();
         return diagnostics;
     }
 
@@ -117,9 +124,9 @@ public class StandardGstParser implements Parser {
     protected void gString() {
         this.acc.start(G_STRING);
         final Collection<Diagnostic> gStringDiagnostics = new ArrayList<>();
-        Token current;
-        while ((current = this.tokens.getCurrent()) != null) {
-            switch (current.getType()) {
+        TokenType currentType;
+        while ((currentType = this.tokenProvider.getCurrentType()) != null) {
+            switch (currentType) {
                 case TEXT -> this.text();
                 case IMPORT_BLOCK_OPEN -> this.importBlock();
                 case BLOCK_SCRIPTLET_OPEN -> this.blockScriptlet();
@@ -128,7 +135,7 @@ public class StandardGstParser implements Parser {
                 case DOLLAR_SCRIPTLET_OPEN -> this.dollarScriptlet();
                 default -> gStringDiagnostics.add(new SimpleDiagnostic(
                         getUnexpectedMessage(
-                                current.getType(),
+                                currentType,
                                 TokenType.TEXT,
                                 TokenType.IMPORT_BLOCK_OPEN,
                                 TokenType.BLOCK_SCRIPTLET_OPEN,

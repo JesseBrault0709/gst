@@ -13,12 +13,11 @@ abstract class AbstractParserTests(private val parser: Parser) {
         private val logger: Logger = LoggerFactory.getLogger(AbstractParserTests::class.java)
     }
 
-    open fun getTokenizer(): Tokenizer = FsmBasedTokenizer()
+    protected open fun getTokenProvider(input: CharSequence): TokenProvider = FsmBasedTokenizer().apply {
+        start(input, 0, input.length, TokenizerState.TEXT)
+    }
 
-    open fun getTokenProvider(input: CharSequence): TokenProvider =
-            TokenizerBasedTokenProvider(input, this.getTokenizer())
-
-    open fun doGStringTest(input: CharSequence, tests: NodeTester.() -> Unit) {
+    protected open fun doGStringTest(input: CharSequence, tests: NodeTester.() -> Unit) {
         val acc = SimpleParserAccumulator()
         this.parser.parse(this.getTokenProvider(input), acc)
         assertGString(acc.result, tests)
