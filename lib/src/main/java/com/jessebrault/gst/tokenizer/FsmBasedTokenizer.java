@@ -6,6 +6,7 @@ import com.jessebrault.fsm.function.FunctionFsmBuilderImpl;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsm;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilder;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilderImpl;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -378,7 +379,7 @@ public final class FsmBasedTokenizer implements Tokenizer {
     }
 
     @Override
-    public TokenType getCurrentType() {
+    public @Nullable TokenType getCurrentType() {
         return this.done ? null : this.currentTokenType;
     }
 
