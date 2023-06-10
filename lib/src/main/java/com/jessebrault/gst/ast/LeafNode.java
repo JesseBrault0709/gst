@@ -4,6 +4,7 @@ import com.jessebrault.gst.tokenizer.TokenType;
 import com.jessebrault.gst.util.Diagnostic;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public final class LeafNode implements AstNode {
 
@@ -39,6 +40,25 @@ public final class LeafNode implements AstNode {
 
     public int getTokenEnd() {
         return this.tokenEnd;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.diagnostics, this.tokenType, this.tokenStart, this.tokenEnd);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (!(obj instanceof LeafNode leafNode)) {
+            return false;
+        } else {
+            return this.diagnostics.equals(leafNode.diagnostics)
+                    && this.tokenType == leafNode.tokenType
+                    && this.tokenStart == leafNode.tokenStart
+                    && this.tokenEnd == leafNode.tokenEnd;
+        }
     }
 
     @Override

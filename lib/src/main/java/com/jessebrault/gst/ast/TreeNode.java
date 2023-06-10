@@ -4,6 +4,7 @@ import com.jessebrault.gst.util.Diagnostic;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public final class TreeNode implements AstNode {
 
@@ -28,6 +29,24 @@ public final class TreeNode implements AstNode {
 
     public List<AstNode> getChildren() {
         return this.children;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.diagnostics, this.type, this.children);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (!(obj instanceof TreeNode treeNode)) {
+            return false;
+        } else {
+            return this.diagnostics.equals(treeNode.diagnostics)
+                    && this.type == treeNode.type
+                    && this.children.equals(treeNode.children);
+        }
     }
 
     @Override

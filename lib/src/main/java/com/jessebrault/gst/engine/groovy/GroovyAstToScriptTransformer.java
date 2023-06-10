@@ -1,7 +1,7 @@
 package com.jessebrault.gst.engine.groovy;
 
 import com.jessebrault.gst.ast.*;
-import com.jessebrault.gst.parser.SimpleParserAccumulator;
+import com.jessebrault.gst.parser.TreeNodeParserAccumulator;
 import com.jessebrault.gst.parser.StandardGstParser;
 import com.jessebrault.gst.tokenizer.FsmBasedTokenizer;
 import com.jessebrault.gst.tokenizer.TokenType;
@@ -10,12 +10,12 @@ import com.jessebrault.gst.tokenizer.TokenizerState;
 import java.util.Collection;
 import java.util.List;
 
-public final class AstToScriptTransformer extends AbstractAstVisitor {
+public final class GroovyAstToScriptTransformer extends AbstractAstVisitor {
 
     // Testing only
     public static void main(String[] args) {
         final var tokenizer = new FsmBasedTokenizer();
-        final var acc = new SimpleParserAccumulator();
+        final var acc = new TreeNodeParserAccumulator();
         final var parser = new StandardGstParser();
         final var input = "<%= unfinished() %>";
         tokenizer.start(input, 0, input.length(), TokenizerState.TEXT);
@@ -27,7 +27,7 @@ public final class AstToScriptTransformer extends AbstractAstVisitor {
         System.out.println("\n" + prettyPrinter.getResult() + "\n");
 
         if (!AstUtil.hasDiagnostics(root)) {
-            final var v = new AstToScriptTransformer(List.of(), input);
+            final var v = new GroovyAstToScriptTransformer(List.of(), input);
             if (root.getType() == TreeNodeType.G_STRING) {
                 v.visitGString(root);
             }
@@ -41,7 +41,7 @@ public final class AstToScriptTransformer extends AbstractAstVisitor {
     private final StringBuilder b = new StringBuilder();
     private int indentIndex = 0;
 
-    public AstToScriptTransformer(Collection<String> importStatements, CharSequence text) {
+    public GroovyAstToScriptTransformer(Collection<String> importStatements, CharSequence text) {
         this.importStatements = importStatements;
         this.text = text;
     }
@@ -90,9 +90,9 @@ public final class AstToScriptTransformer extends AbstractAstVisitor {
                 this.writeLeafNodeLine(body);
             }
         });
-        this.writeLine("def getTemplate() {");
+        this.writeLine("def getTemplateClosure() {");
         this.indentIndex++;
-        this.writeLine("return { out ->", true);
+        this.writeLine("return { Writer out ->", true);
         this.indentIndex++;
         super.visitGString(node);
         this.indentIndex--;

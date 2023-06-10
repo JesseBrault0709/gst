@@ -6,6 +6,8 @@ import com.jessebrault.gst.util.Diagnostic;
 import com.jessebrault.gst.util.SimpleDiagnostic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +22,8 @@ import static com.jessebrault.gst.ast.TreeNodeType.*;
 public class StandardGstParser implements Parser {
 
     private static final Logger logger = LoggerFactory.getLogger(StandardGstParser.class);
+    private static final Marker enter = MarkerFactory.getMarker("ENTER");
+    private static final Marker exit = MarkerFactory.getMarker("EXIT");
 
     protected TokenProvider tokenProvider;
     protected ParserAccumulator acc;
@@ -27,10 +31,12 @@ public class StandardGstParser implements Parser {
 
     @Override
     public final void parse(TokenProvider tokenProvider, ParserAccumulator acc) {
+        logger.trace(enter, "tokenProvider: {}, acc: {}", tokenProvider, acc);
         this.tokenProvider = tokenProvider;
         this.acc = acc;
         this.stashedTypes = new ArrayList<>();
         this.gString();
+        logger.trace(exit, "");
     }
 
     private static String getDiagnosticMessage(String prefix, TokenType... expected) {
@@ -113,12 +119,14 @@ public class StandardGstParser implements Parser {
         return this.expectLeaf(false, expectedTypes);
     }
 
-    protected final Collection<Diagnostic> expectLeaves(TokenType... expectedTypes) {
-        final Collection<Diagnostic> diagnostics = new ArrayList<>();
+    protected final Collection<Diagnostic> expectLeavesInOrder(TokenType... expectedTypes) {
         for (final var expectedType : expectedTypes) {
-            diagnostics.addAll(this.expectLeaf(expectedType));
+            final var diagnostics = this.expectLeaf(expectedType);
+            if (!diagnostics.isEmpty()) {
+                return diagnostics;
+            }
         }
-        return diagnostics;
+        return List.of();
     }
 
     protected void gString() {
@@ -168,96 +176,113 @@ public class StandardGstParser implements Parser {
         }
 
         // open
-        diagnostics.addAll(this.expectLeaf(TokenType.IMPORT_BLOCK_OPEN));
-
-        // body or close
-        diagnostics.addAll(
-                this.expectLeaf(true, TokenType.IMPORT_BLOCK_BODY, TokenType.IMPORT_BLOCK_CLOSE)
-        );
-
-        if (this.isStashed(TokenType.IMPORT_BLOCK_CLOSE)) {
-            // was closed already
-            this.clearStash();
-            this.acc.done(diagnostics);
+        final var openDiagnostics = this.expectLeaf(TokenType.IMPORT_BLOCK_OPEN);
+        if (openDiagnostics.isEmpty()) {
+            // body or close
+            final var bodyOrCloseDiagnostics = this.expectLeaf(
+                    true, TokenType.IMPORT_BLOCK_BODY, TokenType.IMPORT_BLOCK_CLOSE
+            );
+            if (bodyOrCloseDiagnostics.isEmpty()) {
+                if (this.isStashed(TokenType.IMPORT_BLOCK_CLOSE)) {
+                    // was closed
+                    this.clearStash();
+                    this.acc.done(diagnostics);
+                } else {
+                    // had body
+                    this.clearStash();
+                    diagnostics.addAll(this.expectLeaf(TokenType.IMPORT_BLOCK_CLOSE));
+                    this.acc.done(diagnostics);
+                }
+            } else {
+                this.clearStash();
+                diagnostics.addAll(bodyOrCloseDiagnostics);
+                this.acc.done(diagnostics);
+            }
         } else {
-            // had body
-            this.clearStash();
-            diagnostics.addAll(this.expectLeaf(TokenType.IMPORT_BLOCK_CLOSE));
+            diagnostics.addAll(openDiagnostics);
             this.acc.done(diagnostics);
         }
     }
 
     protected void blockScriptlet() {
         this.acc.start(BLOCK_SCRIPTLET);
-        final Collection<Diagnostic> diagnostics = new ArrayList<>();
-
         // open
-        diagnostics.addAll(this.expectLeaf(TokenType.BLOCK_SCRIPTLET_OPEN));
-
-        // body or close
-        diagnostics.addAll(this.expectLeaf(true, TokenType.SCRIPTLET_BODY, TokenType.SCRIPTLET_CLOSE));
-
-        if (this.isStashed(TokenType.SCRIPTLET_CLOSE)) {
-            // was closed
-            this.clearStash();
-            this.acc.done(diagnostics);
+        final var openDiagnostics = this.expectLeaf(TokenType.BLOCK_SCRIPTLET_OPEN);
+        if (openDiagnostics.isEmpty()) {
+            this.scriptletBodyAndClose();
         } else {
-            // had body
-            this.clearStash();
-            diagnostics.addAll(this.expectLeaf(TokenType.SCRIPTLET_CLOSE));
-            this.acc.done(diagnostics);
+            this.acc.done(openDiagnostics);
         }
     }
 
     protected void expressionScriptlet() {
         this.acc.start(EXPRESSION_SCRIPTLET);
-        final Collection<Diagnostic> diagnostics = new ArrayList<>();
-
         // open
-        diagnostics.addAll(this.expectLeaf(TokenType.EXPRESSION_SCRIPTLET_OPEN));
-
-        // body or close
-        diagnostics.addAll(this.expectLeaf(true, TokenType.SCRIPTLET_BODY, TokenType.SCRIPTLET_CLOSE));
-
-        if (this.isStashed(TokenType.SCRIPTLET_CLOSE)) {
-            // was closed
-            this.clearStash();
-            this.acc.done(diagnostics);
+        final var openDiagnostics = this.expectLeaf(TokenType.EXPRESSION_SCRIPTLET_OPEN);
+        if (openDiagnostics.isEmpty()) {
+            this.scriptletBodyAndClose();
         } else {
-            // had body;
+            this.acc.done(openDiagnostics);
+        }
+    }
+
+    protected void scriptletBodyAndClose() {
+        // body or close
+        final var bodyOrCloseDiagnostics = this.expectLeaf(
+                true, TokenType.SCRIPTLET_BODY, TokenType.SCRIPTLET_CLOSE
+        );
+        if (bodyOrCloseDiagnostics.isEmpty()) {
+            if (this.isStashed(TokenType.SCRIPTLET_CLOSE)) {
+                // was closed
+                this.clearStash();
+                this.acc.done();
+            } else {
+                // had body;
+                this.clearStash();
+                this.acc.done(this.expectLeaf(TokenType.SCRIPTLET_CLOSE));
+            }
+        } else {
             this.clearStash();
-            diagnostics.addAll(this.expectLeaf(TokenType.SCRIPTLET_CLOSE));
-            this.acc.done(diagnostics);
+            this.acc.done(bodyOrCloseDiagnostics);
         }
     }
 
     protected void dollarReference() {
         this.acc.start(DOLLAR_REFERENCE);
-        this.acc.done(this.expectLeaves(TokenType.DOLLAR_REFERENCE_DOLLAR, TokenType.DOLLAR_REFERENCE_BODY));
+        this.acc.done(this.expectLeavesInOrder(TokenType.DOLLAR_REFERENCE_DOLLAR, TokenType.DOLLAR_REFERENCE_BODY));
     }
 
     protected void dollarScriptlet() {
         this.acc.start(DOLLAR_SCRIPTLET);
-        final Collection<Diagnostic> diagnostics = new ArrayList<>();
-
         // open
-        diagnostics.addAll(this.expectLeaf(TokenType.DOLLAR_SCRIPTLET_OPEN));
-
-        // body or close
-        diagnostics.addAll(
-                this.expectLeaf(true, TokenType.DOLLAR_SCRIPTLET_BODY, TokenType.DOLLAR_SCRIPTLET_CLOSE)
-        );
-
-        if (this.isStashed(TokenType.DOLLAR_SCRIPTLET_CLOSE)) {
-            // was closed
-            this.clearStash();
-            this.acc.done(diagnostics);
+        final var openDiagnostics = this.expectLeaf(TokenType.DOLLAR_SCRIPTLET_OPEN);
+        if (openDiagnostics.isEmpty()) {
+            // body or close
+            final var bodyOrCloseDiagnostics = this.expectLeaf(
+                    true, TokenType.DOLLAR_SCRIPTLET_BODY, TokenType.DOLLAR_SCRIPTLET_CLOSE
+            );
+            if (bodyOrCloseDiagnostics.isEmpty()) {
+                if (this.isStashed(TokenType.DOLLAR_SCRIPTLET_CLOSE)) {
+                    // was closed
+                    this.clearStash();
+                    this.acc.done();
+                } else {
+                    // had body
+                    this.clearStash();
+                    this.acc.done(this.expectLeaf(TokenType.DOLLAR_SCRIPTLET_CLOSE));
+                }
+            } else {
+                this.clearStash();
+                this.acc.done(bodyOrCloseDiagnostics);
+            }
         } else {
-            // had body
-            this.clearStash();
-            diagnostics.addAll(this.expectLeaf(TokenType.DOLLAR_SCRIPTLET_CLOSE));
-            this.acc.done(diagnostics);
+            this.acc.done(openDiagnostics);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "StandardGstParser()";
     }
 
 }

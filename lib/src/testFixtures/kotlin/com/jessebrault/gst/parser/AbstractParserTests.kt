@@ -18,7 +18,7 @@ abstract class AbstractParserTests(private val parser: Parser) {
     }
 
     protected open fun doGStringTest(input: CharSequence, tests: NodeTester.() -> Unit) {
-        val acc = SimpleParserAccumulator()
+        val acc = TreeNodeParserAccumulator()
         this.parser.parse(this.getTokenProvider(input), acc)
         assertGString(acc.result, tests)
     }

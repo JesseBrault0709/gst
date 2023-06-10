@@ -10,4 +10,9 @@ public class ExtendedGstParser extends StandardGstParser {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "ExtendedGstParser()";
+    }
+
 }

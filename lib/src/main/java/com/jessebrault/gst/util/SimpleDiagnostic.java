@@ -2,10 +2,7 @@ package com.jessebrault.gst.util;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * May be extended to add additional properties/behavior.
- */
-public class SimpleDiagnostic implements Diagnostic {
+public final class SimpleDiagnostic implements Diagnostic {
 
     private final String message;
     private final @Nullable Exception exception;
@@ -20,12 +17,12 @@ public class SimpleDiagnostic implements Diagnostic {
     }
 
     @Override
-    public final String getMessage() {
+    public String getMessage() {
         return this.message;
     }
 
     @Override
-    public final @Nullable Exception getException() {
+    public @Nullable Exception getException() {
         return this.exception;
     }
 

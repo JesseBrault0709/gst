@@ -9,7 +9,7 @@ import com.jessebrault.gst.util.Diagnostic;
 
 import java.util.*;
 
-public final class SimpleParserAccumulator implements ParserAccumulator {
+public final class TreeNodeParserAccumulator implements ParserAccumulator {
 
     private final Deque<TreeNodeType> parents = new LinkedList<>();
     private final Deque<List<AstNode>> children = new LinkedList<>();
@@ -52,6 +52,13 @@ public final class SimpleParserAccumulator implements ParserAccumulator {
             throw new IllegalStateException("not done accumulating AST yet");
         }
         return this.result;
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleParserAccumulator(parents: " + this.parents
+                + ", children: " + this.children
+                + ", result: " + this.result + ")";
     }
 
 }

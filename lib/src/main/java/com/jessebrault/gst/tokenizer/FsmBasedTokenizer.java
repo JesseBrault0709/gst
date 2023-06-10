@@ -508,4 +508,9 @@ public final class FsmBasedTokenizer implements Tokenizer {
         );
     }
 
+    @Override
+    public String toString() {
+        return "FsmBasedTokenizer()";
+    }
+
 }

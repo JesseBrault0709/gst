@@ -14,7 +14,7 @@ repositories {
 dependencies {
     api 'org.apache.groovy:groovy-templates:4.0.12'
 
-    implementation 'com.jessebrault.fsm:lib:0.2.1'
+    implementation 'com.jessebrault.fsm:lib:0.2.2'
 
     'org.jetbrains.kotlin:kotlin-test'.with {
         testImplementation it
