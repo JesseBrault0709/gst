@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 
 public final class GroovyTemplateEngineAdapter extends TemplateEngine {
 
-    public static final class GroovyTemplateAdapter implements Template {
+    private static final class GroovyTemplateAdapter implements Template {
 
         private final GroovyTemplate delegate;
 

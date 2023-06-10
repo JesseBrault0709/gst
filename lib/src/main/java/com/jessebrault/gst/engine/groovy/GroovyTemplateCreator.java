@@ -15,8 +15,8 @@ import com.jessebrault.gst.util.Diagnostic;
 import com.jessebrault.gst.util.Result;
 import com.jessebrault.gst.util.SimpleDiagnostic;
 import groovy.lang.Closure;
-import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
+import groovy.util.GroovyScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class GroovyTemplateCreator implements TemplateCreator {
 
     private final Supplier<Parser> parserSupplier;
     private final File tmpDir;
-    private final GroovyClassLoader groovyClassLoader;
+    private final GroovyScriptEngine engine;
     private final boolean printScript;
 
     private int scriptNumber;
@@ -58,8 +58,7 @@ public class GroovyTemplateCreator implements TemplateCreator {
             this.tmpDir = tmpDirPath.toFile();
             final Collection<URL> allUrls = new ArrayList<>(urls);
             allUrls.add(tmpDirPath.toUri().toURL());
-            this.groovyClassLoader = new GroovyClassLoader(parentClassLoader);
-            allUrls.forEach(this.groovyClassLoader::addURL);
+            this.engine = new GroovyScriptEngine(allUrls.toArray(URL[]::new), parentClassLoader);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -94,16 +93,16 @@ public class GroovyTemplateCreator implements TemplateCreator {
     }
 
     protected Result<Template> createTemplate(String scriptText) {
-        final var scriptName = "groovyTemplateScript" + this.scriptNumber;
-        final var scriptFile = new File(this.tmpDir, scriptName + ".groovy");
+        final var scriptName = "groovyTemplateScript" + this.scriptNumber + ".groovy";
+        final var scriptFile = new File(this.tmpDir, scriptName);
         this.scriptNumber++;
         try (final Writer scriptFileWriter = new FileWriter(scriptFile)) {
             scriptFileWriter.write(scriptText);
             scriptFileWriter.close();
-            final Class<?> scriptClass = this.groovyClassLoader.loadClass(scriptName);
+            final Class<?> scriptClass = this.engine.loadScriptByName(scriptName);
             final var scriptObject = (GroovyObject) scriptClass.getDeclaredConstructor().newInstance();
             final var closure = (Closure<?>) scriptObject.invokeMethod("getTemplateClosure", null);
-            return Result.of(new GroovyTemplate(closure));
+            return Result.of(new GroovyTemplate(scriptObject, closure));
         } catch (Exception e) {
             final Diagnostic diagnostic = new SimpleDiagnostic(
                     "An exception occurred while creating the template: " + e.getMessage(),
