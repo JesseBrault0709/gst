@@ -1,6 +1,6 @@
-package com.jessebrault.gst.engine.groovy;
+package com.jessebrault.gst.groovy;
 
-import com.jessebrault.gst.engine.Template;
+import com.jessebrault.gst.Template;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 

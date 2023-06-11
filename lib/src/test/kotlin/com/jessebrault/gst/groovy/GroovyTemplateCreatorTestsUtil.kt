@@ -1,4 +1,4 @@
-package com.jessebrault.gst.engine.groovy
+package com.jessebrault.gst.groovy
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

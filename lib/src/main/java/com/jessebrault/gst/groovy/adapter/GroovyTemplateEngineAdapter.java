@@ -1,5 +1,7 @@
-package com.jessebrault.gst.engine.groovy;
+package com.jessebrault.gst.groovy.adapter;
 
+import com.jessebrault.gst.groovy.GroovyTemplate;
+import com.jessebrault.gst.groovy.GroovyTemplateCreator;
 import com.jessebrault.gst.parser.Parser;
 import groovy.lang.Writable;
 import groovy.text.Template;

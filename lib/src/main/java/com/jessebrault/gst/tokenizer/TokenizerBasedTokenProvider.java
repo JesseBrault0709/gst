@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public class TokenizerBasedTokenProvider implements TokenProvider {
+public final class TokenizerBasedTokenProvider implements TokenProvider {
 
     private final Tokenizer tokenizer;
 

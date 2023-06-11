@@ -1,4 +1,4 @@
-package com.jessebrault.gst.engine;
+package com.jessebrault.gst;
 
 import java.util.Map;
 

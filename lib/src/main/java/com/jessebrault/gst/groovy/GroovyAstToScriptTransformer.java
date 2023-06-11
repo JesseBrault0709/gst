@@ -1,39 +1,14 @@
-package com.jessebrault.gst.engine.groovy;
+package com.jessebrault.gst.groovy;
 
-import com.jessebrault.gst.ast.*;
-import com.jessebrault.gst.parser.TreeNodeParserAccumulator;
-import com.jessebrault.gst.parser.StandardGstParser;
-import com.jessebrault.gst.tokenizer.FsmBasedTokenizer;
+import com.jessebrault.gst.ast.AbstractAstVisitor;
+import com.jessebrault.gst.ast.AstUtil;
+import com.jessebrault.gst.ast.LeafNode;
+import com.jessebrault.gst.ast.TreeNode;
 import com.jessebrault.gst.tokenizer.TokenType;
-import com.jessebrault.gst.tokenizer.TokenizerState;
 
 import java.util.Collection;
-import java.util.List;
 
 public final class GroovyAstToScriptTransformer extends AbstractAstVisitor {
-
-    // Testing only
-    public static void main(String[] args) {
-        final var tokenizer = new FsmBasedTokenizer();
-        final var acc = new TreeNodeParserAccumulator();
-        final var parser = new StandardGstParser();
-        final var input = "<%= unfinished() %>";
-        tokenizer.start(input, 0, input.length(), TokenizerState.TEXT);
-        parser.parse(tokenizer, acc);
-        final var root = acc.getResult();
-
-        final var prettyPrinter = new AstPrettyPrinterVisitor();
-        prettyPrinter.visitGString(root);
-        System.out.println("\n" + prettyPrinter.getResult() + "\n");
-
-        if (!AstUtil.hasDiagnostics(root)) {
-            final var v = new GroovyAstToScriptTransformer(List.of(), input);
-            if (root.getType() == TreeNodeType.G_STRING) {
-                v.visitGString(root);
-            }
-            System.out.println("\n" + v.getResult() + "\n");
-        }
-    }
 
     private final Collection<String> importStatements;
     private final CharSequence text;
