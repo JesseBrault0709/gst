@@ -10,7 +10,7 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 group = 'com.jessebrault.gst'
-version = '0.0.2'
+version = '0.0.3'
 
 repositories {
     mavenCentral()
