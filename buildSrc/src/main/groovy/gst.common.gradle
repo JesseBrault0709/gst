@@ -56,18 +56,6 @@ java {
     withSourcesJar()
 }
 
-jar {
-    archiveBaseName = "${ project.group }-${ project.name }"
-}
-
-sourcesJar {
-    archivesBaseName = "${ project.group }-${ project.name }"
-}
-
-testFixturesJar {
-    archiveBaseName = "${ project.group }-${ project.name }"
-}
-
 publishing {
     publications {
         gst(MavenPublication) {
