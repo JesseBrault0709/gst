@@ -1,11 +1,11 @@
 package com.jessebrault.gst.groovy;
 
+import com.jessebrault.gst.Template;
+import com.jessebrault.gst.TemplateCreator;
 import com.jessebrault.gst.ast.AstPrettyPrinterVisitor;
 import com.jessebrault.gst.ast.AstUtil;
 import com.jessebrault.gst.ast.TreeNode;
 import com.jessebrault.gst.ast.TreeNodeType;
-import com.jessebrault.gst.Template;
-import com.jessebrault.gst.TemplateCreator;
 import com.jessebrault.gst.parser.Parser;
 import com.jessebrault.gst.parser.TreeNodeParserAccumulator;
 import com.jessebrault.gst.tokenizer.FsmBasedTokenizer;
@@ -25,9 +25,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -40,7 +37,7 @@ public class GroovyTemplateCreator implements TemplateCreator {
     private static final Logger logger = LoggerFactory.getLogger(GroovyTemplateCreator.class);
 
     private final Supplier<Parser> parserSupplier;
-    private final File tmpDir;
+    private final File templateDirectory;
     private final GroovyScriptEngine engine;
     private final boolean debug;
 
@@ -48,17 +45,14 @@ public class GroovyTemplateCreator implements TemplateCreator {
 
     public GroovyTemplateCreator(
             Supplier<Parser> parserSupplier,
-            Collection<URL> urls,
-            ClassLoader parentClassLoader,
+            File templateDirectory,
+            GroovyScriptEngine engine,
             boolean debug
-    ) throws IOException {
+    ) {
         this.parserSupplier = parserSupplier;
+        this.templateDirectory = templateDirectory;
+        this.engine = engine;
         this.debug = debug;
-        final var tmpDirPath = Files.createTempDirectory("groovyTemplateCreator");
-        this.tmpDir = tmpDirPath.toFile();
-        final Collection<URL> allUrls = new ArrayList<>(urls);
-        allUrls.add(tmpDirPath.toUri().toURL());
-        this.engine = new GroovyScriptEngine(allUrls.toArray(URL[]::new), parentClassLoader);
     }
 
     protected TreeNode tokenizeAndParse(CharSequence input) {
@@ -97,7 +91,7 @@ public class GroovyTemplateCreator implements TemplateCreator {
 
     protected Result<Template> createTemplate(String scriptText) {
         final var scriptName = "groovyTemplateScript" + this.scriptNumber + ".groovy";
-        final var scriptFile = new File(this.tmpDir, scriptName);
+        final var scriptFile = new File(this.templateDirectory, scriptName);
         this.scriptNumber++;
         try (final Writer scriptFileWriter = new FileWriter(scriptFile)) {
             scriptFileWriter.write(scriptText);

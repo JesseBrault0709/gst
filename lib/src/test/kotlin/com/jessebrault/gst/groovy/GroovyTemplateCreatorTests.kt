@@ -9,8 +9,10 @@ import kotlin.test.assertEquals
 
 import com.jessebrault.gst.parser.ExtendedGstParser
 import com.jessebrault.gst.util.assertNoDiagnostics
+import groovy.util.GroovyScriptEngine
 import org.junit.jupiter.api.fail
 import java.io.IOException
+import java.nio.file.Files
 
 class GroovyTemplateCreatorTests {
 
@@ -22,10 +24,15 @@ class GroovyTemplateCreatorTests {
     private fun getCreator(
             parser: Parser = StandardGstParser(),
             urls: Collection<URL> = emptyList(),
-            parentClassLoader: ClassLoader = this.javaClass.classLoader,
             printScript: Boolean = true
     ): TemplateCreator = try {
-        GroovyTemplateCreator({ parser }, urls, parentClassLoader, printScript)
+        val templateDirectoryPath = Files.createTempDirectory("groovyTemplateCreatorTests")
+        GroovyTemplateCreator(
+                { parser },
+                templateDirectoryPath.toFile(),
+                GroovyScriptEngine(listOf(templateDirectoryPath.toUri().toURL(), *urls.toTypedArray()).toTypedArray()),
+                printScript
+        )
     } catch (e: IOException) {
         fail(e)
     }

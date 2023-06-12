@@ -6,13 +6,10 @@ import com.jessebrault.gst.parser.Parser;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.TemplateEngine;
+import groovy.util.GroovyScriptEngine;
 import org.codehaus.groovy.control.CompilationFailedException;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.URL;
+import java.io.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -47,19 +44,19 @@ public final class GroovyTemplateEngineAdapter extends TemplateEngine {
     }
 
     private final Supplier<Parser> parserSupplier;
-    private final Collection<URL> urls;
-    private final ClassLoader parentClassLoader;
+    private final File templateDirectory;
+    private final GroovyScriptEngine engine;
     private final Collection<String> customImportStatements;
 
     public GroovyTemplateEngineAdapter(
             Supplier<Parser> parserSupplier,
-            Collection<URL> urls,
-            ClassLoader parentClassLoader,
+            File templateDirectory,
+            GroovyScriptEngine engine,
             Collection<String> customImportStatements
     ) {
         this.parserSupplier = parserSupplier;
-        this.urls = urls;
-        this.parentClassLoader = parentClassLoader;
+        this.templateDirectory = templateDirectory;
+        this.engine = engine;
         this.customImportStatements = customImportStatements;
     }
 
@@ -67,10 +64,7 @@ public final class GroovyTemplateEngineAdapter extends TemplateEngine {
     public Template createTemplate(Reader reader)
             throws CompilationFailedException, ClassNotFoundException, IOException {
         final var templateCreator = new GroovyTemplateCreator(
-                this.parserSupplier,
-                this.urls,
-                this.parentClassLoader,
-                false
+                this.parserSupplier, this.templateDirectory, this.engine, false
         );
         final Writer w = new StringWriter();
         reader.transferTo(w);
