@@ -23,10 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -41,7 +41,7 @@ public class GroovyTemplateCreator implements TemplateCreator {
     private final GroovyScriptEngine engine;
     private final boolean debug;
 
-    private int scriptNumber;
+    private static final AtomicInteger scriptNumber = new AtomicInteger();
 
     public GroovyTemplateCreator(
             Supplier<Parser> parserSupplier,
@@ -90,9 +90,8 @@ public class GroovyTemplateCreator implements TemplateCreator {
     }
 
     protected Result<Template> createTemplate(String scriptText) {
-        final var scriptName = "groovyTemplateScript" + this.scriptNumber + ".groovy";
+        final var scriptName = "groovyTemplateScript" + scriptNumber.getAndIncrement() + ".groovy";
         final var scriptFile = new File(this.templateDirectory, scriptName);
-        this.scriptNumber++;
         try (final Writer scriptFileWriter = new FileWriter(scriptFile)) {
             scriptFileWriter.write(scriptText);
             scriptFileWriter.close();
