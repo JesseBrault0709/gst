@@ -6,7 +6,6 @@ import com.jessebrault.gst.parser.Parser;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.TemplateEngine;
-import groovy.util.GroovyScriptEngine;
 import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.io.*;
@@ -44,19 +43,16 @@ public final class GroovyTemplateEngineAdapter extends TemplateEngine {
     }
 
     private final Supplier<Parser> parserSupplier;
-    private final File templateDirectory;
-    private final GroovyScriptEngine engine;
+    private final ClassLoader parentClassLoader;
     private final Collection<String> customImportStatements;
 
     public GroovyTemplateEngineAdapter(
             Supplier<Parser> parserSupplier,
-            File templateDirectory,
-            GroovyScriptEngine engine,
+            ClassLoader parentClassLoader,
             Collection<String> customImportStatements
     ) {
         this.parserSupplier = parserSupplier;
-        this.templateDirectory = templateDirectory;
-        this.engine = engine;
+        this.parentClassLoader = parentClassLoader;
         this.customImportStatements = customImportStatements;
     }
 
@@ -64,7 +60,7 @@ public final class GroovyTemplateEngineAdapter extends TemplateEngine {
     public Template createTemplate(Reader reader)
             throws CompilationFailedException, ClassNotFoundException, IOException {
         final var templateCreator = new GroovyTemplateCreator(
-                this.parserSupplier, this.templateDirectory, this.engine, false
+                this.parserSupplier, this.parentClassLoader, false
         );
         final Writer w = new StringWriter();
         reader.transferTo(w);
