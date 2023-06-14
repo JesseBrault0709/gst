@@ -58,6 +58,11 @@ public class GroovyTemplateCreator implements TemplateCreator {
         final String packagePath = Stream.of("com", "jessebrault", "gst", "tmp")
                 .reduce("", (acc, part) -> acc + File.separator + part);
         this.packageDirectory = new File(templateDirectoryPath.toFile(), packagePath);
+        if (!this.packageDirectory.mkdirs()) {
+            throw new IOException(
+                    "Unable to create parent directories for the packageDirectory: " + this.packageDirectory
+            );
+        }
         this.debug = debug;
     }
 
@@ -98,27 +103,19 @@ public class GroovyTemplateCreator implements TemplateCreator {
     protected Result<Template> createTemplate(String scriptText) {
         final var scriptName = "groovyTemplateScript" + this.scriptNumber.getAndIncrement();
         final var scriptFile = new File(this.packageDirectory, scriptName + ".groovy");
-        if (scriptFile.getParentFile().mkdirs()) {
-            try (final Writer scriptFileWriter = new FileWriter(scriptFile)) {
-                scriptFileWriter.write(scriptText);
-                scriptFileWriter.close();
-                final Class<?> scriptClass = this.groovyClassLoader.loadClass(
-                        "com.jessebrault.gst.tmp." + scriptName
-                );
-                final var scriptObject = (GroovyObject) scriptClass.getDeclaredConstructor().newInstance();
-                final var closure = (Closure<?>) scriptObject.invokeMethod("getTemplateClosure", null);
-                return Result.of(new GroovyTemplate(scriptObject, closure));
-            } catch (Exception e) {
-                final Diagnostic diagnostic = new SimpleDiagnostic(
-                        "An exception occurred while creating the template: " + e.getMessage(),
-                        e
-                );
-                return Result.ofDiagnostics(List.of(diagnostic));
-            }
-        } else {
+        try (final Writer scriptFileWriter = new FileWriter(scriptFile)) {
+            scriptFileWriter.write(scriptText);
+            scriptFileWriter.close();
+            final Class<?> scriptClass = this.groovyClassLoader.loadClass(
+                    "com.jessebrault.gst.tmp." + scriptName
+            );
+            final var scriptObject = (GroovyObject) scriptClass.getDeclaredConstructor().newInstance();
+            final var closure = (Closure<?>) scriptObject.invokeMethod("getTemplateClosure", null);
+            return Result.of(new GroovyTemplate(scriptObject, closure));
+        } catch (Exception e) {
             final Diagnostic diagnostic = new SimpleDiagnostic(
-                    "Unable to create parent directories for scriptFile: " + scriptFile,
-                    null
+                    "An exception occurred while creating the template: " + e.getMessage(),
+                    e
             );
             return Result.ofDiagnostics(List.of(diagnostic));
         }
